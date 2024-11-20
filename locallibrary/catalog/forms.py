@@ -12,11 +12,11 @@ class RenewBookForm(forms.Form):
 
         #Проверка того, что дата не выходит за "нижнюю" границу (не в прошлом).
         if data < datetime.date.today():
-            raise ValidationError(_('Invalid date - renewal in past'))
+            raise ValidationError(('Invalid date - renewal in past'))
 
         #Проверка того, то дата не выходит за "верхнюю" границу (+4 недели).
         if data > datetime.date.today() + datetime.timedelta(weeks=4):
-            raise ValidationError(_('Invalid date - renewal more than 4 weeks ahead'))
+            raise ValidationError(('Invalid date - renewal more than 4 weeks ahead'))
 
         # Помните, что всегда надо возвращать "очищенные" данные.
         return data
