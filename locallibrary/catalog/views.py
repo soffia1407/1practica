@@ -1,20 +1,18 @@
-from django.http import Http404
 from django.shortcuts import render, redirect
 from .models import Book, Author, BookInstance, Genre
 from django.views import generic, View
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 import datetime
+from django.contrib.auth.decorators import permission_required
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-from .models import Author
 
 from .forms import RenewBookForm
 
-# Create your views here.
+
 def index(request):
     """
     Функция отображения для домашней страницы сайта.
@@ -24,28 +22,26 @@ def index(request):
     num_instances=BookInstance.objects.all().count()
     # Доступные книги (статус = 'a')
     num_instances_available=BookInstance.objects.filter(status__exact='a').count()
-    num_authors = Author.objects.count()  # The 'all()' is implied by default.
-
-    # Number of visits to this view, as counted in the session variable.
+    num_authors=Author.objects.count()  # Метод 'all()' применён по умолчанию.
     num_visits = request.session.get('num_visits', 0)
     request.session['num_visits'] = num_visits + 1
 
-    # Render the HTML template index.html with the data in the context variable.
+    # Отрисовка HTML-шаблона base_generic.html с данными внутри
+    # переменной контекста context
     return render(
         request,
         'index.html',
-        context={'num_books': num_books, 'num_instances': num_instances,
-                 'num_instances_available': num_instances_available, 'num_authors': num_authors,
-                 'num_visits': num_visits},  # num_visits appended
-    )
+        context={'num_books':num_books,'num_instances':num_instances,
+                 'num_instances_available':num_instances_available,'num_authors':num_authors,
+                 'num_visits': num_visits})
 
 
 class BookListView(generic.ListView):
     model = Book
     paginate_by = 10
 
-    def get_queryset(self):
-        return Book.objects.filter(title__icontains='war')[:5]
+#   def get_queryset(self):
+#       return Book.objects.filter(title__icontains='war')[:5]
 
     def get_context_data(self, **kwargs):
         # В первую очередь получаем базовую реализацию контекста
@@ -54,9 +50,15 @@ class BookListView(generic.ListView):
         context['some_data'] = 'This is just some data'
         return context
 
+
 class BookDetailView(generic.DetailView):
     model = Book
 
+    def book_detail_view(request, pk):
+        book = Book.objects.get(pk=pk)
+        book_instances = book.bookinstance_set.all()  # Получение всех экземпляров
+        context = {'book': book, 'copies': book_instances}  # Передача в контекст шаблона
+        return render(request, 'book_detail.html', context)
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         book = self.get_object()
@@ -64,20 +66,23 @@ class BookDetailView(generic.DetailView):
         context['selected_count'] = selected_count
         return context
 
+
 class BookCreate(PermissionRequiredMixin, CreateView):
     model = Book
     fields = ['title', 'author', 'summary', 'isbn', 'genre']
     permission_required = 'catalog.add_book'
 
+
 class BookUpdate(PermissionRequiredMixin, UpdateView):
     model = Book
-    fields = ['title', 'author', 'summary', 'isbn', 'genre', 'language']
+    fields = ['title', 'author', 'summary', 'isbn', 'genre']
     permission_required = 'catalog.change_book'
 
 class BookDelete(PermissionRequiredMixin, DeleteView):
     model = Book
     success_url = reverse_lazy('books')
     permission_required = 'catalog.delete_book'
+
 
 class LoanedBooksByUserListView(LoginRequiredMixin,generic.ListView):
     """

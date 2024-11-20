@@ -16,8 +16,6 @@ class Genre(models.Model):
         """
         return self.name
 
-
-
 class Book(models.Model):
     """
     Model representing a book (but not a specific copy of a book).
@@ -38,7 +36,6 @@ class Book(models.Model):
         """
         return self.title
 
-
     def get_absolute_url(self):
         """
         Returns the url to access a particular book instance.
@@ -52,8 +49,6 @@ class Book(models.Model):
         return ', '.join([genre.name for genre in self.genre.all()[:3]])
 
     display_genre.short_description = 'Genre'
-
-
 
 class BookInstance(models.Model):
     """
@@ -78,7 +73,6 @@ class BookInstance(models.Model):
         ordering = ["due_back"]
         permissions = (("can_mark_returned", "Set book as returned"),)
 
-
     def __str__(self):
         """
         String for representing the Model object
@@ -90,8 +84,6 @@ class BookInstance(models.Model):
         if self.due_back and date.today() > self.due_back:
             return True
         return False
-
-
 
 class Author(models.Model):
     """
@@ -113,6 +105,3 @@ class Author(models.Model):
         String for representing the Model object.
         """
         return '%s, %s' % (self.last_name, self.first_name)
-
-    class Meta:
-        ordering = ['last_name']
