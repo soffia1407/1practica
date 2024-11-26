@@ -1,15 +1,22 @@
 from django.contrib import admin
 from .models import Author, Genre, Book, BookInstance
 
-#admin.site.register(Book)
-#admin.site.register(Author)
 admin.site.register(Genre)
-#admin.site.register(BookInstance)
+
 
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ('last_name', 'first_name', 'date_of_birth', 'date_of_death')
-    fields = ['first_name', 'last_name', ('date_of_birth', 'date_of_death')]
+    list_display = ('last_name', 'first_name', 'date_of_birth', 'date_of_death', 'display_photo')
+    fields = ['first_name', 'last_name', ('date_of_birth', 'date_of_death', 'photo')]
+
+    def display_photo(self, obj):
+        if obj.photo:
+            return format_html('<img src="{}" width="100" height="100" />'.format(obj.photo.url))
+        return "No Image"
+
+    display_photo.short_description = 'Photo'
+
 admin.site.register(Author, AuthorAdmin)
+
 
 class BooksInstanceInline(admin.TabularInline):
     model = BookInstance
